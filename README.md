@@ -14,6 +14,23 @@ Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 The page will reload when you make changes.\
 You may also see any lint errors in the console.
 
+## Backend
+The backend here is a simple Flask server with an included sqlite DB<br/>
+To start:
+1. Enter the database folder by running `cd database`
+2. [Optional] Create venv `python -m venv venv`
+2a. [Optional] Activate venv `venv\Scripts\activate`
+3. Install the requirements `pip install -r requirements.txt`
+4. Run `python app.py` to start the development server
+
+### Routes
+- [GET] http://127.0.0.1:5000/users
+- [POST] http://127.0.0.1:5000/users
+- [GET] http://127.0.0.1:5000/proposals
+- [POST] http://127.0.0.1:5000/proposals
+- [GET] http://127.0.0.1:5000/userproposals
+- [POST] http://127.0.0.1:5000/userproposals
+
 ### `npm test`
 
 Launches the test runner in the interactive watch mode.\

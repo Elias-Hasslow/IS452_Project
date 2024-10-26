@@ -1,5 +1,7 @@
 // src/components/CreateProposal.js
 import React, { useState } from 'react';
+import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
+
 
 const CreateProposal = ({ account, contract }) => {
   const [description, setDescription] = useState('');
@@ -31,33 +33,54 @@ const CreateProposal = ({ account, contract }) => {
   };
 
   return (
-    <div>
-      <h2>Create Proposal</h2>
+    <Box>
+      <Box sx={{pt:2, mb:3}}> 
+        <Typography variant="h4">Create Proposal</Typography>
+      </Box>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label>Description:</label>
+        <Box sx={{mb:3}}>
+          <TextField
+            fullWidth
+            label="Description"
+            variant="outlined"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          />
+          {/* <label>Description:</label>
           <input
             type="text"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
-          />
-        </div>
-        <div>
-          <label>Duration (in seconds):</label>
-          <input
+          /> */}
+        </Box>
+        <Box sx={{mb:3}}>
+          <TextField
+            fullWidth
+            label="Duration (in seconds)"
+            variant="outlined"
             type="number"
             value={duration}
             onChange={(e) => setDuration(e.target.value)}
             required
           />
-        </div>
-        <button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Proposal'}
-        </button>
+          {/* <label>Duration (in seconds):</label>
+          <input
+            type="number"
+            value={duration}
+            onChange={(e) => setDuration(e.target.value)}
+            required
+          /> */}
+        </Box>
+        <Box sx={{display: 'flex', justifyContent: 'left', mt:2}}>
+          <Button type="submit" variant="contained" color="success" disabled={loading} sx={{minWidth:150}}>
+              {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Proposal'}
+          </Button>
+        </Box>
       </form>
-      {message && <p>{message}</p>} {/* Display message to the user */}
-    </div>
+      {message && <Typography variant="body1">{message}</Typography>} {/* Display message to the user */}
+    </Box>
   );
 };
 
