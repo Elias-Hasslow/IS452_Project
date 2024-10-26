@@ -9,10 +9,36 @@ import ViewProposals from './components/ViewProposals'; // Create this component
 import Results from './components/Results'; // Create this component
 import VotingSystem from './VotingSystem.json'; // Import your contract ABI
 
+import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
+
 const App = () => {
   const [account, setAccount] = useState('');
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
+
+  function NavButton({ to, label }) {
+    return (
+      <Button
+        component={Link}
+        to={to}
+        sx={{
+          color: 'white',
+          textDecoration: 'none',
+          padding: '8px 20px',
+          borderRadius: '10px',
+          transition: 'background-color 0.3s, transform 0.3s',
+          '&:hover': {
+            backgroundColor: '#4CAF50', 
+            transform: 'scale(1.05)', // Slight zoom-in on hover
+          },
+          fontWeight: '600',
+          letterSpacing: '0.5px', // Modern look with letter spacing
+        }}
+      >
+        {label}
+      </Button>
+    );
+  }
 
   const initWeb3 = async () => {
     try {
@@ -61,9 +87,8 @@ const App = () => {
   return (
     <Router>
       <div>
-        <h1>Voting DApp</h1>  
         {/* Navigation Bar */}
-        <nav>
+        {/* <nav>
           <ul>
             <li><Link to="/">Home</Link></li>
             <li><Link to="/create">Create Proposal</Link></li>
@@ -71,19 +96,43 @@ const App = () => {
             <li><Link to="/proposals">View Proposals</Link></li>
             <li><Link to="/results">Results</Link></li>
           </ul>
-        </nav>
+        </nav> */}
+
+        <Typography variant="h4" align="center" sx={{ color: '#333', mt: 4, fontWeight:'bold' }}>Voting DApp</Typography>
+
+        <AppBar position="static" sx={{ 
+            bgcolor: '#388E3C', 
+            mt: 3, 
+            boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)', 
+            borderRadius: 0, 
+            mx: 'auto',
+        }}>
+          <Toolbar sx={{ justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <NavButton to="/" label="Home" />
+              <NavButton to="/create" label="Create Proposal" />
+              <NavButton to="/vote" label="Vote" />
+              <NavButton to="/proposals" label="View Proposals" />
+              <NavButton to="/results" label="Results" />
+            </Box>
+          </Toolbar>
+        </AppBar>
   
         {/* Content Container */}
-        <div className="container">
-          {/* Pass account and contract to components */}
-          <Routes>
-            <Route path="/" element={<Home account={account} />} />
-            <Route path="/create" element={<CreateProposal account={account} contract={contract} />} />
-            <Route path="/vote" element={<Vote account={account} contract={contract} />} />
-            <Route path="/proposals" element={<ViewProposals account={account} contract={contract} />} />
-            <Route path="/results" element={<Results account={account} contract={contract} />} />
-          </Routes>
-        </div>
+        <Container maxWidth="md">
+          <Box sx={{bgcolor: 'white', p: 2, mt: 2, borderRadius: 1, boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' }}>
+            <Box>
+              {/* Pass account and contract to components */}
+              <Routes>
+                <Route path="/" element={<Home account={account} />} />
+                <Route path="/create" element={<CreateProposal account={account} contract={contract} />} />
+                <Route path="/vote" element={<Vote account={account} contract={contract} />} />
+                <Route path="/proposals" element={<ViewProposals account={account} contract={contract} />} />
+                <Route path="/results" element={<Results account={account} contract={contract} />} />
+              </Routes>
+            </Box>
+          </Box>
+        </Container>
       </div>
     </Router>
   );  
