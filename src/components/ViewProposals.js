@@ -25,21 +25,27 @@ const ViewProposals = () => {
   return (
     <Box>
       <Typography variant="h4">Proposals</Typography>
-      {proposals.map((proposal, index) => (
-        <Box key={index} sx={{ mb: 2, border: '1px solid #ccc', p: 2 }} style={{ cursor: 'pointer' }} onClick={() => handleToggle(index)}>
-          <Typography>
-            {proposal.title}
-          </Typography>
-          <Typography variant="body1">{proposal.description}</Typography>
-          {expanded === index && (
-            <Box sx={{ mt: 1 }}>
-              <Typography variant="body2">Duration: {proposal.duration} seconds</Typography>
-              <Typography variant="body2">Address: {proposal.proposal_address}</Typography>
-              {/* Add more details as needed */}
-            </Box>
-          )}
-        </Box>
-      ))}
+      {proposals.map((proposal, index) => {
+        const proposalTimestamp = new Date(proposal.timestamp).getTime() / 1000; // Convert to Unix timestamp in seconds
+        const currentTimestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+        const duration = Math.max(0, currentTimestamp - proposalTimestamp);
+
+        return (
+          <Box key={index} sx={{ mb: 2, border: '1px solid #ccc', p: 2 }} style={{ cursor: 'pointer' }} onClick={() => handleToggle(index)}>
+            <Typography>
+              {proposal.title}
+            </Typography>
+            <Typography variant="body1">{proposal.description}</Typography>
+            {expanded === index && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2">Time left: {duration} seconds</Typography>
+                <Typography variant="body2">Address: {proposal.proposal_address}</Typography>
+                {/* Add more details as needed */}
+              </Box>
+            )}
+          </Box>
+        );
+      })}
     </Box>
   );
 };
