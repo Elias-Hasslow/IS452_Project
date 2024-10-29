@@ -1,8 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Box, Typography } from '@mui/material'; // Assuming you're using Material-UI
 
 const ViewProposals = () => {
   const [proposals, setProposals] = useState([]);
+  const [expanded, setExpanded] = useState(null); // Initialize the expanded state
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -16,16 +18,29 @@ const ViewProposals = () => {
     fetchProposals();
   }, []);
 
+  const handleToggle = (index) => {
+    setExpanded(expanded === index ? null : index);
+  };
+
   return (
-    <div>
-      <h1>Proposals</h1>
+    <Box>
+      <Typography variant="h4">Proposals</Typography>
       {proposals.map((proposal, index) => (
-        <div key={index}>
-          <h2>{proposal.title}</h2>
-          <p>{proposal.description}</p>
-        </div>
+        <Box key={index} sx={{ mb: 2, border: '1px solid #ccc', p: 2 }} style={{ cursor: 'pointer' }} onClick={() => handleToggle(index)}>
+          <Typography>
+            {proposal.title}
+          </Typography>
+          <Typography variant="body1">{proposal.description}</Typography>
+          {expanded === index && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2">Duration: {proposal.duration} seconds</Typography>
+              <Typography variant="body2">Address: {proposal.proposal_address}</Typography>
+              {/* Add more details as needed */}
+            </Box>
+          )}
+        </Box>
       ))}
-    </div>
+    </Box>
   );
 };
 
