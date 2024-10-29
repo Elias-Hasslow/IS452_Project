@@ -1,107 +1,52 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import useContract from '../hooks/useContract'; // Ensure this is correct for a default export
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Box, Typography } from '@mui/material'; // Assuming you're using Material-UI
 
 const ViewProposals = () => {
-  const [activeProposals, setActiveProposals] = useState([]);
-  const [pastProposals, setPastProposals] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const contract = useContract(); // Assuming you have a hook to get the contract instance
-
-  const fetchProposals = useCallback(async () => {
-    try {
-      const proposalCount = await contract.methods.proposalCount().call();
-      const active = [];
-      const past = [];
-
-      for (let i = 0; i < proposalCount; i++) {
-        const proposal = await contract.methods.proposals(i).call();
-        const { description, deadline, yesVotes, noVotes, votingEnded } = proposal;
-
-        // Convert BigInt to Number
-        const totalVotes = Number(yesVotes) + Number(noVotes); // Explicit conversion here
-        const yesPercentage = totalVotes > 0 ? (Number(yesVotes) / totalVotes) * 100 : 0;
-        const noPercentage = totalVotes > 0 ? (Number(noVotes) / totalVotes) * 100 : 0;
-
-        const proposalData = {
-          id: i,
-          description,
-          deadline: new Date(Number(deadline) * 1000).toLocaleString(), // Convert deadline to Number
-          yesPercentage: yesPercentage.toFixed(2),
-          noPercentage: noPercentage.toFixed(2),
-          votingEnded,
-        };
-
-        if (votingEnded) {
-          past.push(proposalData);
-        } else {
-          active.push(proposalData);
-        }
-      }
-
-      setActiveProposals(active);
-      setPastProposals(past);
-    } catch (err) {
-      console.error('Error fetching proposals:', err);
-      setError('Failed to fetch proposals. Check console for details.');
-    } finally {
-      setLoading(false);
-    }
-  }, [contract]);
+  const [proposals, setProposals] = useState([]);
+  const [expanded, setExpanded] = useState(null); // Initialize the expanded state
 
   useEffect(() => {
+    const fetchProposals = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/proposals'); // Flask endpoint
+        setProposals(response.data);
+      } catch (error) {
+        console.error("Error fetching proposals:", error);
+      }
+    };
     fetchProposals();
-  }, [fetchProposals]);
+  }, []);
 
-  if (loading) return <div>Loading proposals...</div>;
-  if (error) return <div>{error}</div>;
+  const handleToggle = (index) => {
+    setExpanded(expanded === index ? null : index);
+  };
 
   return (
-    <div>
-      <h2>Active Proposals</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Deadline</th>
-            <th>Yes Votes (%)</th>
-            <th>No Votes (%)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {activeProposals.map((proposal) => (
-            <tr key={proposal.id}>
-              <td>{proposal.description}</td>
-              <td>{proposal.deadline}</td>
-              <td>{proposal.yesPercentage}</td>
-              <td>{proposal.noPercentage}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <Box>
+      <Typography variant="h4">Proposals</Typography>
+      {proposals.map((proposal, index) => {
+        const proposalTimestamp = new Date(proposal.timestamp).getTime() / 1000; // Convert to Unix timestamp in seconds
+        const currentTimestamp = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+        const duration = Math.max(0, currentTimestamp - proposalTimestamp);
 
-      <h2>Past Proposals</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th>Deadline</th>
-            <th>Yes Votes (%)</th>
-            <th>No Votes (%)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {pastProposals.map((proposal) => (
-            <tr key={proposal.id}>
-              <td>{proposal.description}</td>
-              <td>{proposal.deadline}</td>
-              <td>{proposal.yesPercentage}</td>
-              <td>{proposal.noPercentage}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+        return (
+          <Box key={index} sx={{ mb: 2, border: '1px solid #ccc', p: 2 }} style={{ cursor: 'pointer' }} onClick={() => handleToggle(index)}>
+            <Typography>
+              {proposal.title}
+            </Typography>
+            <Typography variant="body1">{proposal.description}</Typography>
+            {expanded === index && (
+              <Box sx={{ mt: 1 }}>
+                <Typography variant="body2">Time left: {duration} seconds</Typography>
+                <Typography variant="body2">Address: {proposal.proposal_address}</Typography>
+                {/* Add more details as needed */}
+              </Box>
+            )}
+          </Box>
+        );
+      })}
+    </Box>
   );
 };
 

@@ -1,6 +1,7 @@
 // src/components/CreateProposal.js
 import React, { useState } from 'react';
 import { Box, TextField, Button, Typography, CircularProgress } from '@mui/material';
+import axios from 'axios'
 
 
 const CreateProposal = ({ account, contract }) => {
@@ -18,6 +19,13 @@ const CreateProposal = ({ account, contract }) => {
       // Call the smart contract function to create a proposal
       const result = await contract.methods.createProposal(description, duration)
         .send({ from: account });
+
+          // Transaction was successful, add proposal to backend database
+    await axios.post('http://localhost:5000/proposals', {
+      proposal_address: result.transactionHash,
+      description,
+      duration,
+    });
 
       // Update message on success
       setMessage(`Proposal created successfully! Transaction hash: ${result.transactionHash}`);
