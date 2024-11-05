@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import useContract from '../hooks/useContract'; // Ensure this is correct for a default export
 
 const ViewProposals = () => {
-  const [activeProposals, setActiveProposals] = useState([]);
-  const [pastProposals, setPastProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const { contract, account } = useContract(); // Destructure the returned object to get contract and account
