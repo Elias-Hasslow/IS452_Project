@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback} from 'react';
+import { useNavigate } from 'react-router-dom';
 // import axios from 'axios';
-import { Box, Typography, Select, MenuItem } from '@mui/material'; // Assuming you're using Material-UI
+import { Box, Typography, Select, MenuItem, Card, CardContent, CardActions, Button, CircularProgress } from '@mui/material';
 
 const ViewProposals = ({ contract }) => {
   const [activeProposals, setActiveProposals] = useState([]);
@@ -11,6 +12,7 @@ const ViewProposals = ({ contract }) => {
   // const [proposals, setProposals] = useState([]);
   const [expanded, setExpanded] = useState(null); // Initialize the expanded state
 
+  const navigate = useNavigate();
 
   // Get filter option
   const getFilteredProposals = () => {
@@ -19,7 +21,7 @@ const ViewProposals = ({ contract }) => {
         return activeProposals; // Display only active proposals
       case 'past':
         return pastProposals; // Display only past proposals
-      case 'all':
+      case 'all': 
       default:
         return [...activeProposals, ...pastProposals]; // Display all proposals
     }
@@ -38,6 +40,14 @@ const ViewProposals = ({ contract }) => {
     }
   };
   
+  useEffect(() => { 
+    if (activeProposals.length > 0){
+      console.log("Active Proposals: ", activeProposals);
+    }
+    else if (pastProposals.length > 0){
+      console.log("Past Proposals: ", pastProposals);
+    }
+  }, [activeProposals]);
 
   const fetchProposals = useCallback(async () => {
     //   try {
@@ -62,11 +72,12 @@ const ViewProposals = ({ contract }) => {
 
       for (let i = 0; i < proposalCount; i++) {
         const proposal = await contract.methods.proposals(i).call();
-        const { description, deadline, yesVotes, noVotes, votingEnded } = proposal;
-        console.log(proposal);
-        // console.log("current fetching proposal id: ", i);
+        const { description, deadline, yesVotes, noVotes } = proposal;
+        //console.log("proposal", proposal);
+        //console.log("current fetching proposal id: ", i);
 
         // Convert BigInt to Number
+        const deadlineDate = new Date(Number(deadline) * 1000);
         const totalVotes = Number(yesVotes) + Number(noVotes); // Explicit conversion here
         const yesPercentage = totalVotes > 0 ? (Number(yesVotes) / totalVotes) * 100 : 0;
         const noPercentage = totalVotes > 0 ? (Number(noVotes) / totalVotes) * 100 : 0;
@@ -74,12 +85,12 @@ const ViewProposals = ({ contract }) => {
         const proposalData = {
           id: i,
           description,
-          deadline: new Date(Number(deadline) * 1000).toLocaleString(), // Convert deadline to Number
+          deadline: deadlineDate.toLocaleString(), // Convert deadline to Number
           yesPercentage: yesPercentage.toFixed(2),
         };
         // console.log(proposalData);
-
-        if (votingEnded) {
+        
+        if (Date.now() > deadlineDate.getTime()) {
           past.push(proposalData);
         } else {
           active.push(proposalData);
@@ -101,11 +112,11 @@ const ViewProposals = ({ contract }) => {
   }, [fetchProposals]);
 
     if (loading) {
-      return <div>Loading...</div>;
+      return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}><CircularProgress /></Box>;
     }
 
     if (error) {
-      return <div>{error}</div>;
+      return <Typography color="error">{error}</Typography>;
     }
 
   
@@ -115,8 +126,11 @@ const ViewProposals = ({ contract }) => {
 
   return (
     <Box>
-      <Typography variant="h4">{getTitle()}</Typography>
-      <Box>
+      <Box sx={{textAlign:"center"}}>
+        <Typography variant="h4">{getTitle()}</Typography>
+      </Box>
+
+      <Box sx={{mt:2, mb:2, mr:2}}>
         <Select
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
@@ -133,11 +147,18 @@ const ViewProposals = ({ contract }) => {
         <Typography>No proposals available.</Typography>
       ) : (
         getFilteredProposals().map((proposal) => (
-          <Box key={proposal.id} sx={{ mb: 2, border: '1px solid #ccc', p: 2 }}>
-            <Typography variant="h6">{proposal.description}</Typography>
-            <Typography variant="body1">Deadline: {proposal.deadline}</Typography>
-            <Typography variant="body1">Yes Votes: {proposal.yesPercentage}%</Typography>
-          </Box>
+          <Card key={proposal.id} sx={{ mb: 3, boxShadow: 3 }}>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>{proposal.description}</Typography>
+              <Typography variant="body2" color="textSecondary">Deadline: {proposal.deadline}</Typography>
+              <Typography variant="body2">Yes Votes: {proposal.yesPercentage}%</Typography>
+            </CardContent>
+            <CardActions>
+              <Button size="small" onClick={() => navigate(`/proposals/${proposal.id}`)}>
+                View Details
+              </Button>
+            </CardActions>
+          </Card>
         ))
       )}
       {/* <Typography variant="h4">Active Proposals</Typography>
@@ -186,3 +207,5 @@ const ViewProposals = ({ contract }) => {
 };
 
 export default ViewProposals;
+
+

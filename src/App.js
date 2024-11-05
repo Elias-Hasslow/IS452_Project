@@ -8,6 +8,7 @@ import Vote from './components/Vote'; // Create this component
 import ViewProposals from './components/ViewProposals'; // Create this component
 import Results from './components/Results'; // Create this component
 import VotingSystem from './VotingSystem.json'; // Import your contract ABI
+import IndividualProposal from './components/IndividualProposal';
 
 import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
 
@@ -111,9 +112,9 @@ const App = () => {
             <Box sx={{ display: 'flex', gap: 2 }}>
               <NavButton to="/" label="Home" />
               <NavButton to="/create" label="Create Proposal" />
-              <NavButton to="/vote" label="Vote" />
+              {/* <NavButton to="/vote" label="Vote" /> */}
               <NavButton to="/proposals" label="View Proposals" />
-              <NavButton to="/results" label="Results" />
+              {/* <NavButton to="/results" label="Results" /> */}
             </Box>
           </Toolbar>
         </AppBar>
@@ -128,6 +129,7 @@ const App = () => {
                 <Route path="/create" element={<CreateProposal account={account} contract={contract} />} />
                 <Route path="/vote" element={<Vote account={account} contract={contract} />} />
                 <Route path="/proposals" element={<ViewProposals account={account} contract={contract} />} />
+                <Route path="/proposals/:id" element={<IndividualProposal account={account} contract={contract} />} />
                 <Route path="/results" element={<Results account={account} contract={contract} />} />
               </Routes>
             </Box>

@@ -21,10 +21,12 @@ class User(db.Model):
 
 class Proposal(db.Model):
     pid = db.Column(db.Integer, primary_key=True)
-    proposal_address = db.Column(db.String(255), unique=True, nullable=False)
+    name = db.Column(db.String(255), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=False)
-    duration = db.Column(db.Integer, nullable=False)  # duration in seconds
-    timestamp = db.Column(db.DateTime, nullable=False)
+    deadline = db.Column(db.DateTime, nullable=False)
+    total_votes = db.Column(db.Integer, default=0) 
+    total_yes_votes = db.Column(db.Integer, default=0) 
+    total_no_votes = db.Column(db.Integer, default=0)
 
 class UserProposal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -50,27 +52,106 @@ def get_users():
     users = User.query.all()
     return jsonify([{"uid": user.uid, "wallet_address": user.wallet_address, "username": user.username} for user in users]), 200
 
-## CRUD: Proposals
-#### Add Proposal
+@app.route('/users/<int:uid>', methods=['GET'])
+def get_user(uid):
+    user = User.query.get(uid)
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify({"uid": user.uid, "wallet_address": user.wallet_address, "username": user.username}), 200
+
+#### delete user
+@app.route('/users/<int:uid>', methods=['DELETE'])
+def delete_user(uid):
+    user = User.query.get(uid)
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify({"message": "User deleted"}), 200
+
+# CRUD: Proposals
+# Add Proposal
 @app.route('/proposals', methods=['POST'])
 def add_proposal():
     data = request.get_json()
-    new_proposal = Proposal(
-        proposal_address=data['proposal_address'],
-        description=data['description'],
-        duration=data['duration'],
-        timestamp=datetime.now()  # Set current timestamp
-    )
-    db.session.add(new_proposal)
-    db.session.commit()
-    return jsonify({"message": "Proposal added", "pid": new_proposal.pid}), 201
+    try:
+        new_proposal = Proposal(
+            name=data['name'],
+            description=data['description'],
+            deadline=datetime.strptime(data['deadline'], '%Y-%m-%d %H:%M:%S'),  # Deadline in 'YYYY-MM-DD HH:MM:SS' format
+        )
+        db.session.add(new_proposal)
+        db.session.commit()
+        return jsonify({"message": "Proposal added", "pid": new_proposal.pid}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
-
-# Read Proposals
+# Get All Proposals
 @app.route('/proposals', methods=['GET'])
 def get_proposals():
     proposals = Proposal.query.all()
-    return jsonify([{"pid": proposal.pid, "proposal_address": proposal.proposal_address, "description": proposal.description, "duration": proposal.duration, "timestamp": proposal.timestamp} for proposal in proposals]), 200
+    result = [
+        {
+            "pid": proposal.pid,
+            "name": proposal.name,
+            "description": proposal.description,
+            "deadline": proposal.deadline.strftime('%Y-%m-%d %H:%M:%S'),
+            "total_votes": proposal.total_votes,
+            "total_yes_votes": proposal.total_yes_votes,
+            "total_no_votes": proposal.total_no_votes
+        } for proposal in proposals
+    ]
+    return jsonify(result), 200
+
+# Get a Specific Proposal by ID
+@app.route('/proposals/<int:pid>', methods=['GET'])
+def get_proposal(pid):
+    proposal = Proposal.query.get(pid)
+    if proposal is None:
+        return jsonify({"error": "Proposal not found"}), 404
+    
+    return jsonify({
+        "pid": proposal.pid,
+        "name": proposal.name,
+        "description": proposal.description,
+        "deadline": proposal.deadline.strftime('%Y-%m-%d %H:%M:%S'),
+        "total_votes": proposal.total_votes,
+        "total_yes_votes": proposal.total_yes_votes,
+        "total_no_votes": proposal.total_no_votes
+    }), 200
+
+# Update a Proposal
+@app.route('/proposals/<int:pid>', methods=['PUT'])
+def update_proposal(pid):
+    data = request.get_json()
+    proposal = Proposal.query.get(pid)
+    if proposal is None:
+        return jsonify({"error": "Proposal not found"}), 404
+    
+    try:
+        proposal.name = data.get('name', proposal.name)
+        proposal.description = data.get('description', proposal.description)
+        if 'deadline' in data:
+            proposal.deadline = datetime.strptime(data['deadline'], '%Y-%m-%d %H:%M:%S')
+        proposal.total_votes = data.get('total_votes', proposal.total_votes)
+        proposal.total_yes_votes = data.get('total_yes_votes', proposal.total_yes_votes)
+        proposal.total_no_votes = data.get('total_no_votes', proposal.total_no_votes)
+        
+        db.session.commit()
+        return jsonify({"message": "Proposal updated"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# Delete a Proposal
+@app.route('/proposals/<int:pid>', methods=['DELETE'])
+def delete_proposal(pid):
+    proposal = Proposal.query.get(pid)
+    if proposal is None:
+        return jsonify({"error": "Proposal not found"}), 404
+    
+    db.session.delete(proposal)
+    db.session.commit()
+    return jsonify({"message": "Proposal deleted"}), 200
 
 ## CRUD: Users Proposals
 #### Add User Proposal
