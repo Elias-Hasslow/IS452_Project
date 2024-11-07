@@ -47,6 +47,9 @@ const ViewProposals = ({ contract }) => {
     else if (pastProposals.length > 0){
       console.log("Past Proposals: ", pastProposals);
     }
+    const walletAddress = sessionStorage.getItem('walletAddress');
+    //console.log(walletAddress); // Use this value as needed
+
   }, [activeProposals]);
 
   const fetchProposals = useCallback(async () => {

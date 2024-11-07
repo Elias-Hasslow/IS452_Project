@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import Web3 from 'web3';
-import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
 import Home from './components/Home'; // Create this component
 import CreateProposal from './components/CreateProposal'; // Create this component
 import Vote from './components/Vote'; // Create this component
@@ -9,6 +9,7 @@ import ViewProposals from './components/ViewProposals'; // Create this component
 import Results from './components/Results'; // Create this component
 import VotingSystem from './VotingSystem.json'; // Import your contract ABI
 import IndividualProposal from './components/IndividualProposal';
+import LoginPage from './components/LoginPage'; 
 
 import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
 
@@ -16,6 +17,8 @@ const App = () => {
   const [account, setAccount] = useState('');
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
 
   function NavButton({ to, label }) {
     return (
@@ -85,6 +88,11 @@ const App = () => {
     initWeb3();
   }, []);
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('walletAddress');
+    setIsAuthenticated(false);
+  }
+
   return (
     <Router>
       <div>
@@ -110,11 +118,13 @@ const App = () => {
         }}>
           <Toolbar sx={{ justifyContent: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <NavButton to="/" label="Home" />
+              <NavButton to="/homepage" label="Home" />
               <NavButton to="/create" label="Create Proposal" />
               {/* <NavButton to="/vote" label="Vote" /> */}
               <NavButton to="/proposals" label="View Proposals" />
               {/* <NavButton to="/results" label="Results" /> */}
+              {isAuthenticated ? <NavButton onClick={handleLogout} to="/" label="Logout" />: null}
+
             </Box>
           </Toolbar>
         </AppBar>
@@ -125,12 +135,13 @@ const App = () => {
             <Box>
               {/* Pass account and contract to components */}
               <Routes>
-                <Route path="/" element={<Home account={account} />} />
-                <Route path="/create" element={<CreateProposal account={account} contract={contract} />} />
-                <Route path="/vote" element={<Vote account={account} contract={contract} />} />
-                <Route path="/proposals" element={<ViewProposals account={account} contract={contract} />} />
-                <Route path="/proposals/:id" element={<IndividualProposal account={account} contract={contract} />} />
-                <Route path="/results" element={<Results account={account} contract={contract} />} />
+                <Route path="/" element={<LoginPage setAuth={setIsAuthenticated}/>} />
+                <Route path="/homepage" element={<Home account={account} />} />
+                <Route path="/create" element={isAuthenticated ? <CreateProposal account={account} contract={contract} />: <Navigate to="/" />} />
+                {/* <Route path="/vote" element={<Vote account={account} contract={contract} />} /> */}
+                <Route path="/proposals" element={isAuthenticated ? <ViewProposals account={account} contract={contract} /> : <Navigate to="/" />} />
+                <Route path="/proposals/:id" element={isAuthenticated ? <IndividualProposal account={account} contract={contract} /> : <Navigate to="/" />} />
+                {/* <Route path="/results" element={<Results account={account} contract={contract} />} /> */}
               </Routes>
             </Box>
           </Box>

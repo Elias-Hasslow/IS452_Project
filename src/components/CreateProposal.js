@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { postProposal } from '../axios/proposal';
 import axios from 'axios';
 import { getUsers } from '../axios/users';
+import { addSecondsToCurrentDate } from './datetimeHelper';
 
 const CreateProposal = ({ account, contract }) => {
   const [name, setName] = useState('');
@@ -47,19 +48,44 @@ const CreateProposal = ({ account, contract }) => {
 
     try {
       // Call the smart contract function to create a proposal
-      const result = await contract.methods.createProposal(name, description, duration)
-        .send({ from: account });
+      // const result = await contract.methods.createProposal(name, description, duration)
+      //   .send({ from: account });
+      
+      let deadline = addSecondsToCurrentDate(duration);
+      
+      let proposal = JSON.stringify({
+        "name": name,
+        "description": description,
+        "deadline": deadline,
+      })
 
+      console.log(proposal)
+
+      const result = await postProposal(proposal);
+
+      if (result) {
+        console.log("Proposal submitted successfully:", result);
+      } else {
+        console.error("Error submitting proposal");
+      }
+      // if (selectedUserTokenPairs.length > 0) {
+      //   // Call the smart contract function to add voters to the proposal
+      //   for (let i = 0; i < selectedUserTokenPairs.length; i++) {
+      //     const { userId, tokens } = selectedUserTokenPairs[i];
+      //     await contract.methods.assignTokens(result.transactionHash, userId, tokens)
+      //       .send({ from: account });
+      //   }
+      // }
     //   // Transaction was successful, add proposal to backend database
-      await axios.post('http://localhost:5000/proposals', {
-        proposal_address: result.transactionHash,
-        name,
-        description,
-        duration,
-      });
+      // await axios.post('http://localhost:5000/proposals', {
+      //   proposal_address: result.transactionHash,
+      //   name,
+      //   description,
+      //   duration,
+      // });
 
     //   // Update message on success
-      setMessage(`Proposal created successfully! Transaction hash: ${result.transactionHash}`);
+      //setMessage(`Proposal created successfully! Transaction hash: ${result.transactionHash}`);
     } catch (error) {
       console.error('Error creating proposal:', error);
       setMessage('An error occurred while creating the proposal. Check the console for details.');
