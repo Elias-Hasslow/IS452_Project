@@ -19,7 +19,7 @@ const IndividualProposal = ({account, contract}) => {
   
         try {
           const proposal = await contract.methods.proposals(id).call();
-          const { description, deadline, yesVotes, noVotes } = proposal;
+          const { name, description, deadline, yesVotes, noVotes } = proposal;
           const totalVotes = Number(yesVotes) + Number(noVotes);
           const yesPercentage = totalVotes > 0 ? (Number(yesVotes) / totalVotes) * 100 : 0;
           const noPercentage = totalVotes > 0 ? (Number(noVotes) / totalVotes) * 100 : 0;
@@ -28,6 +28,7 @@ const IndividualProposal = ({account, contract}) => {
           const currentDate = new Date();
 
           setProposal({
+            name: name,
             description,
             deadline: deadlineDate.toLocaleString(),
             yesVotes: yesVotes.toString(),
@@ -71,8 +72,9 @@ const IndividualProposal = ({account, contract}) => {
         {proposal && (
         <Box>
           <Box>
-            <Typography variant="h4" gutterBottom>{proposal.description}</Typography>
+            <Typography variant="h4" gutterBottom>{proposal.name}</Typography>
             <Typography variant="body1" color="textSecondary">Deadline: {proposal.deadline}</Typography>
+            <Typography variant="body1">{proposal.description}</Typography>
             <Typography variant="body1">Yes Votes: {proposal.yesVotes} ({proposal.yesPercentage}%)</Typography>
             <Typography variant="body1">No Votes: {proposal.noVotes} ({proposal.noPercentage}%)</Typography>
             <Typography variant="body1">Total Votes: {Number(proposal.yesVotes) + Number(proposal.noVotes)}</Typography>

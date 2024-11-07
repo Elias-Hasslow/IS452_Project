@@ -72,8 +72,8 @@ const ViewProposals = ({ contract }) => {
 
       for (let i = 0; i < proposalCount; i++) {
         const proposal = await contract.methods.proposals(i).call();
-        const { description, deadline, yesVotes, noVotes } = proposal;
-        //console.log("proposal", proposal);
+        const { name, description, deadline, yesVotes, noVotes } = proposal;
+        console.log("proposal", proposal);
         //console.log("current fetching proposal id: ", i);
 
         // Convert BigInt to Number
@@ -84,6 +84,7 @@ const ViewProposals = ({ contract }) => {
 
         const proposalData = {
           id: i,
+          name: name,
           description,
           deadline: deadlineDate.toLocaleString(), // Convert deadline to Number
           yesPercentage: yesPercentage.toFixed(2),
@@ -149,8 +150,9 @@ const ViewProposals = ({ contract }) => {
         getFilteredProposals().map((proposal) => (
           <Card key={proposal.id} sx={{ mb: 3, boxShadow: 3 }}>
             <CardContent>
-              <Typography variant="h6" gutterBottom>{proposal.description}</Typography>
+              <Typography variant="h6" gutterBottom>{proposal.name}</Typography>
               <Typography variant="body2" color="textSecondary">Deadline: {proposal.deadline}</Typography>
+              <Typography variant="body2">Description: {proposal.description}</Typography>
               <Typography variant="body2">Yes Votes: {proposal.yesPercentage}%</Typography>
             </CardContent>
             <CardActions>
