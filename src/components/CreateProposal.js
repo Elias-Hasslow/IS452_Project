@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { postProposal } from '../axios/proposal';
 import axios from 'axios';
 import { getUsers } from '../axios/users';
+import { addSecondsToCurrentDate } from './datetimeHelper';
 
 const CreateProposal = ({ account, contract }) => {
   const [name, setName] = useState('');
@@ -14,24 +15,24 @@ const CreateProposal = ({ account, contract }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   
-  const [users, setUsers] = useState([]);
-  const [userID, setUserID] = useState([]); // Store user IDs and usernames
-  const [selectedUserTokenPairs, setSelectedUserTokenPairs] = useState([{ userId: '', tokens: '0' }]); // Initialize with one pair as string for token
+  // const [users, setUsers] = useState([]);
+  // const [userID, setUserID] = useState([]); // Store user IDs and usernames
+  // const [selectedUserTokenPairs, setSelectedUserTokenPairs] = useState([{ userId: '', tokens: '0' }]); // Initialize with one pair as string for token
   
-  useEffect(() => {
-    getUsers().then((response) => {
-      setUsers(response);
+  // useEffect(() => {
+  //   getUsers().then((response) => {
+  //     setUsers(response);
       
-      // Create an array of user objects with userId and username
-      const userIdArray = response.map(user => ({
-        userId: user.uid,   // Map uid to userId
-        username: user.username // Include username if needed
-      }));
+  //     // Create an array of user objects with userId and username
+  //     const userIdArray = response.map(user => ({
+  //       userId: user.uid,   // Map uid to userId
+  //       username: user.username // Include username if needed
+  //     }));
 
-      // Set the userId array to userID state
-      setUserID(userIdArray);
-    });
-  }, []);
+  //     // Set the userId array to userID state
+  //     setUserID(userIdArray);
+  //   });
+  // }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,24 +43,33 @@ const CreateProposal = ({ account, contract }) => {
       name,
       description,
       duration,
-      selectedUserTokenPairs,
     });
 
     try {
       // Call the smart contract function to create a proposal
       const result = await contract.methods.createProposal(name, description, duration)
         .send({ from: account });
+      
+      let deadline = addSecondsToCurrentDate(duration);
+      
+      let proposal = JSON.stringify({
+        "name": name,
+        "description": description,
+        "deadline": deadline,
+      })
 
-    //   // Transaction was successful, add proposal to backend database
-      await axios.post('http://localhost:5000/proposals', {
-        proposal_address: result.transactionHash,
-        name,
-        description,
-        duration,
-      });
+      console.log(proposal)
+
+      const axios_result = await postProposal(proposal);
+
+      if (axios_result) {
+        console.log("Proposal submitted successfully:", result);
+      } else {
+        console.error("Error submitting proposal");
+      }
 
     //   // Update message on success
-      setMessage(`Proposal created successfully! Transaction hash: ${result.transactionHash}`);
+      //setMessage(`Proposal created successfully! Transaction hash: ${result.transactionHash}`);
     } catch (error) {
       console.error('Error creating proposal:', error);
       setMessage('An error occurred while creating the proposal. Check the console for details.');
@@ -69,32 +79,6 @@ const CreateProposal = ({ account, contract }) => {
       setDescription('');
       setDuration(0);
     }
-  };
-
-  const handleUserChange = (index, value) => {
-    const newUserTokenPairs = [...selectedUserTokenPairs];
-    newUserTokenPairs[index].userId = value;
-    setSelectedUserTokenPairs(newUserTokenPairs);
-  };
-
-  const handleTokenChange = (index, value) => {
-    // Prevent deleting the initial '0'
-    if (value === '' || value === '0' || /^[1-9]\d*$/.test(value)) {
-      const newUserTokenPairs = [...selectedUserTokenPairs];
-      newUserTokenPairs[index].tokens = value;
-      setSelectedUserTokenPairs(newUserTokenPairs);
-    }
-  };
-
-  const handleRemoveUserTokenPair = (index) => {
-    if (selectedUserTokenPairs.length > 1) {
-      const newUserTokenPairs = selectedUserTokenPairs.filter((_, i) => i !== index);
-      setSelectedUserTokenPairs(newUserTokenPairs);
-    }
-  };
-
-  const addUserTokenPair = () => {
-    setSelectedUserTokenPairs([...selectedUserTokenPairs, { userId: '', tokens: '0' }]);
   };
 
   return (
@@ -122,41 +106,6 @@ const CreateProposal = ({ account, contract }) => {
             onChange={(e) => setDuration(e.target.value)} required
           />
         </Box>
-        <Box><Typography variant="h6">Add Voters</Typography></Box>
-        <Button onClick={addUserTokenPair} variant="contained" color="success" sx={{ mb: 2 }}>
-          Add Field
-        </Button>
-        {selectedUserTokenPairs.map((pair, index) => (
-          <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <TextField
-              select
-              label="Select User"
-              value={pair.userId}
-              onChange={(e) => handleUserChange(index, e.target.value)}
-              fullWidth
-              required
-              sx={{ mr: 1 }} // Add right margin
-            >
-              {userID.map((user) => (
-                <MenuItem key={user.userId} value={user.userId}>
-                  {user.username}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="Token Amount"
-              type="text" // Change type to text to control input
-              value={pair.tokens}
-              onChange={(e) => handleTokenChange(index, e.target.value)}
-              fullWidth
-              required
-              sx={{ mx: 1 }} // Add horizontal margin
-            />
-            <IconButton color="error" onClick={() => handleRemoveUserTokenPair(index)}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        ))}
         <Box sx={{ display: 'flex', justifyContent: 'left', mt: 2 }}>
           <Button type="submit" variant="contained" color="success" disabled={loading} sx={{ minWidth: 150 }}>
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Create Proposal'}

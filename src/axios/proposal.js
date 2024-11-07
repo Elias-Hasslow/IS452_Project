@@ -22,7 +22,12 @@ export const getUniqueProposal = async (proposalId) => {
 
 export const postProposal = async (proposal) => {
     try {
-        const response = await axios.post('/proposals', proposal);
+        const response = await axios.post('/proposals', proposal, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          }
+        );
         return response.data;
     } catch (error) {
         console.error("Error posting proposal:", error);
