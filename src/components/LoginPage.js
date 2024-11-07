@@ -5,15 +5,7 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 import { getUsers } from '../axios/users';
 
-
-// const xorHash = (input, key) => {
-//   return input
-//     .split('')
-//     .map((char) => String.fromCharCode(char.charCodeAt(0) ^ key))
-//     .join('');
-// };
-
-const LoginPage = ({ setAuth }) => {
+const LoginPage = ({ setAuth, setRole }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -22,13 +14,13 @@ const LoginPage = ({ setAuth }) => {
   const navigate = useNavigate();
 
   const correctHashedPassword = "password"; // Store this securely
-  const xorKey = 11111111;
+  
 
   useEffect(() => {
     getUsers().then((response) => {
       let walletArray = []
       response.forEach((user) => {
-        walletArray[user.username] = user.wallet_address;
+        walletArray[user.username] = [user.wallet_address, user.role];
       });
       setUsers(walletArray);
       console.log(walletArray);
@@ -40,10 +32,14 @@ const LoginPage = ({ setAuth }) => {
     if (users) {   
       if (password === correctHashedPassword && users[username])  {
         
-        const walletAddress = users[username];
+        const walletAddress = users[username][0];
+        const role = users[username][1];
         sessionStorage.setItem('walletAddress', walletAddress);
+        sessionStorage.setItem('role', role);
+        console.log(role)
 
         setAuth(true); // Set authentication to true
+        setRole(role);
         navigate('/homepage'); // Redirect to home page
       } else {
         alert('Incorrect password');

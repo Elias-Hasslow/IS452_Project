@@ -18,6 +18,8 @@ class User(db.Model):
     uid = db.Column(db.Integer, primary_key=True)
     wallet_address = db.Column(db.String(255), unique=True, nullable=False)
     username = db.Column(db.String(100), nullable=False)
+    role =db.Column(db.String(100), nullable=False, default='user')
+    token = db.Column(db.Integer, default=0)
 
 class Proposal(db.Model):
     pid = db.Column(db.Integer, primary_key=True)
@@ -32,7 +34,6 @@ class UserProposal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey('user.uid'), nullable=False)
     pid = db.Column(db.Integer, db.ForeignKey('proposal.pid'), nullable=False)
-    token_assigned = db.Column(db.Integer, nullable=False)
     votes = db.Column(db.Integer, default=0)  # Initialize votes to 0
 
 
@@ -50,14 +51,14 @@ def add_user():
 @app.route('/users', methods=['GET'])
 def get_users():
     users = User.query.all()
-    return jsonify([{"uid": user.uid, "wallet_address": user.wallet_address, "username": user.username} for user in users]), 200
+    return jsonify([{"uid": user.uid, "wallet_address": user.wallet_address, "username": user.username, "role": user.role, "token": user.token} for user in users]), 200
 
 @app.route('/users/<int:uid>', methods=['GET'])
 def get_user(uid):
     user = User.query.get(uid)
     if user is None:
         return jsonify({"error": "User not found"}), 404
-    return jsonify({"uid": user.uid, "wallet_address": user.wallet_address, "username": user.username}), 200
+    return jsonify({"uid": user.uid, "wallet_address": user.wallet_address, "username": user.username, "role": user.role, "token": user.token}), 200
 
 #### delete user
 @app.route('/users/<int:uid>', methods=['DELETE'])
@@ -68,6 +69,31 @@ def delete_user(uid):
     db.session.delete(user)
     db.session.commit()
     return jsonify({"message": "User deleted"}), 200
+
+#### Update User
+@app.route('/users/<int:uid>', methods=['PUT'])
+def update_user(uid):
+    data = request.get_json()
+    user = User.query.get(uid)
+    
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+    
+    # Update user fields if provided in the request data
+    if 'wallet_address' in data:
+        user.wallet_address = data['wallet_address']
+    if 'username' in data:
+        user.username = data['username']
+    if 'role' in data:
+        user.role = data['role']
+    if 'token' in data:
+        user.token = data['token']
+    
+    # Commit the changes to the database
+    db.session.commit()
+    
+    # Return success message
+    return jsonify({"message": "User updated successfully"}), 200
 
 # CRUD: Proposals
 # Add Proposal

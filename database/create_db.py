@@ -15,6 +15,8 @@ class User(db.Model):
     uid = db.Column(db.Integer, primary_key=True)
     wallet_address = db.Column(db.String(255), unique=True, nullable=False)
     username = db.Column(db.String(100), nullable=False)
+    role =db.Column(db.String(100), nullable=False, default='shareholder')
+    token = db.Column(db.Integer, default=0)
 
 class Proposal(db.Model):
     pid = db.Column(db.Integer, primary_key=True)
@@ -30,7 +32,6 @@ class UserProposal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey('user.uid'), nullable=False)
     pid = db.Column(db.Integer, db.ForeignKey('proposal.pid'), nullable=False)
-    token_assigned = db.Column(db.Integer, nullable=False)
     vote = db.Column(db.Boolean, default=False)  # Initialize votes to 0
 
 # Create the database file and tables

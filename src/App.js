@@ -8,16 +8,31 @@ import Vote from './components/Vote'; // Create this component
 import ViewProposals from './components/ViewProposals'; // Create this component
 import Results from './components/Results'; // Create this component
 import VotingSystem from './VotingSystem.json'; // Import your contract ABI
+
 import IndividualProposal from './components/IndividualProposal';
+import AddUserToken from './components/AddUserToken';
 import LoginPage from './components/LoginPage'; 
 
 import { Box, Container, AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { Add } from '@mui/icons-material';
 
 const App = () => {
   const [account, setAccount] = useState('');
   const [web3, setWeb3] = useState(null);
   const [contract, setContract] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [role, setRole] = useState('');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const storedRole = sessionStorage.getItem('role');
+      if (storedRole) {
+        setRole(storedRole);
+      }
+    }
+  }, [isAuthenticated]);
+  
+    
 
 
   function NavButton({ to, label }) {
@@ -119,11 +134,11 @@ const App = () => {
           <Toolbar sx={{ justifyContent: 'center' }}>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <NavButton to="/homepage" label="Home" />
-              <NavButton to="/create" label="Create Proposal" />
+              {role === "user" ? <NavButton to="/create" label="Create Proposal" /> : null}
               {/* <NavButton to="/vote" label="Vote" /> */}
+              {role ==="user" ? <NavButton to="/adduser" label="Add User & Token" /> : null}
               <NavButton to="/proposals" label="View Proposals" />
-              {/* <NavButton to="/results" label="Results" /> */}
-              {isAuthenticated ? <NavButton onClick={handleLogout} to="/" label="Logout" />: null}
+              {isAuthenticated ? <NavButton onClick={handleLogout} to="/" label="Logout" />: <NavButton to="/" label="Login"/>}
 
             </Box>
           </Toolbar>
@@ -135,10 +150,10 @@ const App = () => {
             <Box>
               {/* Pass account and contract to components */}
               <Routes>
-                <Route path="/" element={<LoginPage setAuth={setIsAuthenticated}/>} />
+                <Route path="/" element={<LoginPage setAuth={setIsAuthenticated} setRole={setRole}/>} />
                 <Route path="/homepage" element={<Home account={account} />} />
-                <Route path="/create" element={isAuthenticated ? <CreateProposal account={account} contract={contract} />: <Navigate to="/" />} />
-                {/* <Route path="/vote" element={<Vote account={account} contract={contract} />} /> */}
+                {role === "user" ? <Route path="/create" element={isAuthenticated ? <CreateProposal account={account} contract={contract} />: <Navigate to="/" />} /> : null}
+                {role === "user" ? <Route path="/adduser" element={<AddUserToken account={account} contract={contract} />} /> : null}
                 <Route path="/proposals" element={isAuthenticated ? <ViewProposals account={account} contract={contract} /> : <Navigate to="/" />} />
                 <Route path="/proposals/:id" element={isAuthenticated ? <IndividualProposal account={account} contract={contract} /> : <Navigate to="/" />} />
                 {/* <Route path="/results" element={<Results account={account} contract={contract} />} /> */}
