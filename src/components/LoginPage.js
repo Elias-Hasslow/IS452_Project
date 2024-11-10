@@ -20,10 +20,10 @@ const LoginPage = ({ setAuth, setRole }) => {
     getUsers().then((response) => {
       let walletArray = []
       response.forEach((user) => {
-        walletArray[user.username] = [user.wallet_address, user.role];
+        walletArray[user.username] = [user.wallet_address, user.role, user.uid];
       });
       setUsers(walletArray);
-      console.log(walletArray);
+      console.log("walllet array", walletArray);
     });
   }, []);
 
@@ -36,6 +36,7 @@ const LoginPage = ({ setAuth, setRole }) => {
         const role = users[username][1];
         sessionStorage.setItem('walletAddress', walletAddress);
         sessionStorage.setItem('role', role);
+        sessionStorage.setItem('uid', users[username][2]);
         console.log(role)
 
         setAuth(true); // Set authentication to true

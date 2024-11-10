@@ -34,3 +34,17 @@ export const postProposal = async (proposal) => {
         return null;
     }
 };
+
+export const voteOnProposal = async (userproposal) => {
+    try {
+        const response = await axios.post('/userproposals', userproposal, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error voting on proposal:", error);
+        return null;
+    }
+}
