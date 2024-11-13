@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Box, TextField, Button, Typography, CircularProgress, MenuItem } from '@mui/material';
-import { addUser, updateUser } from '../axios/users';
+import { addUser, getUserByWalletAddress, updateUser } from '../axios/users';
 
-const AddUserToken = (account, contract) => {
+const AddUserToken = ({ account, contract }) => {
     const [walletAddress, setWalletAddress] = useState('');
     const [tokenAmount, setTokenAmount] = useState('');
     const [newUserData, setNewUserData] = useState({
@@ -19,12 +19,25 @@ const AddUserToken = (account, contract) => {
         console.log(loading);
     }, [loading]);
 
-    // Handler for updating existing user token
+
+    // Modified handleUpdateToken
     const handleUpdateToken = async () => {
         setLoading(true);
         try {
+            // First update blockchain
+            const blockchainResult = await contract.methods.assignTokens(walletAddress, tokenAmount)
+                .send({ from: account });
+            
+            // Fetch user by wallet address
+            const user = await getUserByWalletAddress(walletAddress);
+            if (!user || !user.uid) {
+                throw new Error("User not found for the provided wallet address.");
+            }
+
+            const userId = user.uid;
+
             // Make an axios PUT/POST request for updating token amount
-            const updateToken = await updateUser(3, { token: tokenAmount });
+            const updateToken = await updateUser(userId, { token: tokenAmount });
             if (updateToken.error) {
                 throw new Error("Error updating token.");
             }
@@ -32,8 +45,12 @@ const AddUserToken = (account, contract) => {
                 console.log("Token updated successfully!");
                 setResponseMessage("Token updated successfully!");
             }
+
+            console.log("Token updated successfully!", blockchainResult);
+            setResponseMessage("Token updated successfully in blockchain and database!");
         } catch (error) {
-            setResponseMessage("Error updating token.");
+            console.error("Error:", error);
+            setResponseMessage("Error updating token: " + error.message);
         } finally {
             setLoading(false);
         }

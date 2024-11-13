@@ -63,6 +63,16 @@ export const deleteUser = async (uid) => {
     }
 };
 
+export const getUserByWalletAddress = async (walletAddress) => {
+    try {
+        const response = await axios.get(`/users/wallet/${walletAddress}`);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching user with wallet address ${walletAddress}:`, error);
+        return null;
+    }
+};
+
 
 export const getUserProposals = async (uid, pid) => {
     try {
