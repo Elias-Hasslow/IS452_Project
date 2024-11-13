@@ -30,6 +30,7 @@ const ViewProposals = ({ contract }) => {
     }
   };
 
+
   // Change the title according to selected filter option
   const getTitle = () => {
     switch (filter) {

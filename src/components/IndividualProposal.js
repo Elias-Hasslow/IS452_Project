@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 
 import { Box, Typography, CircularProgress, Button } from "@mui/material";
 import { voteOnProposal } from "../axios/proposal";
+import { getUserProposals } from "../axios/users";
 
 
 const IndividualProposal = ({account, contract}) => {
@@ -12,6 +13,7 @@ const IndividualProposal = ({account, contract}) => {
     const [error, setError] = useState('');
 
     const [hasEnded, setHasEnded] = useState(false);
+    const [hasVoted, setHasVoted] = useState(false);
     
     const role = sessionStorage.getItem('role');
     const uid = sessionStorage.getItem('uid');
@@ -61,6 +63,18 @@ const IndividualProposal = ({account, contract}) => {
       fetchProposal();
     }, [contract, id]);
 
+    useEffect(() => {
+      const fetchUserProposal = async () => {
+        const userProposal = await getUserProposals(uid, id);
+    
+        if (userProposal) {
+          setHasVoted(true);
+        }
+      };
+      console.log("this is id", id);
+      fetchUserProposal();
+    }, [uid, id]);
+
     const vote = async (vote) => {
         try { 
           if (vote === "yes") {
@@ -103,15 +117,26 @@ const IndividualProposal = ({account, contract}) => {
               ) : null}
           </Box>
           <Box sx={{ mt: 2 }}>
-              {proposal.isVotingEnded ? (
-                  <Typography variant="body1" color="textSecondary">Voting has ended. Results are displayed above.</Typography>
-              ) : (
-                  <>
-                      <Button variant="contained" color="primary" onClick={() => vote("yes")}>Vote Yes</Button>
-                      <Button variant="contained" color="warning" sx={{ ml: 2 }} onClick={() => vote("no")}>Vote No</Button>
-                  </>
-              )}
+            {proposal.isVotingEnded ? (
+              <Typography variant="body1" color="textSecondary">
+                Voting has ended. Results are displayed above.
+              </Typography>
+            ) : hasVoted ? (
+              <Typography variant="body1" color="textSecondary">
+                You have voted already
+              </Typography>
+            ) : (
+              <>
+                <Button variant="contained" color="primary" onClick={() => vote("yes")}>
+                  Vote Yes
+                </Button>
+                <Button variant="contained" color="warning" sx={{ ml: 2 }} onClick={() => vote("no")}>
+                  Vote No
+                </Button>
+              </>
+            )}
           </Box>
+
           <Box>
             {error && <Typography color="error">{error}</Typography>}
           </Box>

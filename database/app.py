@@ -219,6 +219,13 @@ def get_user_proposals():
     user_proposals = UserProposal.query.all()
     return jsonify([{"id": up.id, "uid": up.uid, "pid": up.pid, "vote": up.vote} for up in user_proposals]), 200
 
+### read user proposal by uid and pid
+@app.route('/userproposals/<int:uid>/<int:pid>', methods=['GET'])
+def get_user_proposal(uid, pid):
+    user_proposal = UserProposal.query.filter_by(uid=uid, pid=pid).first()
+    if user_proposal is None:
+        return jsonify({"error": "User Proposal not found"}), 404
+    return jsonify({"id": user_proposal.id, "uid": user_proposal.uid, "pid": user_proposal.pid, "vote": user_proposal.vote}), 200
 
 #### Add User Proposal
 @app.route('/userproposals', methods=['POST'])
