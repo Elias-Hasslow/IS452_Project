@@ -227,6 +227,15 @@ def get_user_proposal(uid, pid):
         return jsonify({"error": "User Proposal not found"}), 404
     return jsonify({"id": user_proposal.id, "uid": user_proposal.uid, "pid": user_proposal.pid, "vote": user_proposal.vote}), 200
 
+@app.route('/users/wallet/<wallet_address>', methods=['GET'])
+def get_user_by_wallet_address(wallet_address):
+    user = User.query.filter_by(wallet_address=wallet_address).first()
+    if user:
+        return jsonify(uid=user.uid, username=user.username, role=user.role, token=user.token)
+    else:
+        return jsonify({"error": "User not found"}), 404
+
+
 #### Add User Proposal
 @app.route('/userproposals', methods=['POST'])
 def add_user_proposal():
