@@ -8,6 +8,7 @@ import Vote from './components/Vote'; // Create this component
 import ViewProposals from './components/ViewProposals'; // Create this component
 import Results from './components/Results'; // Create this component
 import VotingSystem from './VotingSystem.json'; // Import your contract ABI
+import ViewTokens from './components/ViewTokens';
 
 import IndividualProposal from './components/IndividualProposal';
 import AddUserToken from './components/AddUserToken';
@@ -22,6 +23,7 @@ const App = () => {
   const [contract, setContract] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState('');
+
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -75,7 +77,6 @@ const App = () => {
                 VotingSystem.abi,
                 deployedNetwork && deployedNetwork.address,
               );
-
               setWeb3(web3Instance);
               setContract(contractInstance);
             } else {
@@ -135,10 +136,14 @@ const App = () => {
             <Box sx={{ display: 'flex', gap: 2 }}>
               <NavButton to="/homepage" label="Home" />
               {role === "admin" ? <NavButton to="/create" label="Create Proposal" /> : null}
+              {role === "admin" ? <NavButton to="/create" label="Create Proposal" /> : null}
               {/* <NavButton to="/vote" label="Vote" /> */}
               {role ==="admin" ? <NavButton to="/adduser" label="Add User & Token" /> : null}
+              {role ==="admin" ? <NavButton to="/adduser" label="Add User & Token" /> : null}
               <NavButton to="/proposals" label="View Proposals" />
+              <NavButton to="/viewtokens" label="View Tokens" />
               {isAuthenticated ? <NavButton onClick={handleLogout} to="/" label="Logout" />: <NavButton to="/" label="Login"/>}
+              
 
             </Box>
           </Toolbar>
@@ -152,6 +157,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<LoginPage setAuth={setIsAuthenticated} setRole={setRole}/>} />
                 <Route path="/homepage" element={<Home account={account} />} />
+                <Route path="/viewtokens" element={isAuthenticated ? (<ViewTokens />) : (<Navigate to="/" />)}/>
                 {role === "admin" ? <Route path="/create" element={isAuthenticated ? <CreateProposal account={account} contract={contract} />: <Navigate to="/" />} /> : null}
                 {role === "admin" ? <Route path="/adduser" element={<AddUserToken account={account} contract={contract} />} /> : null}
                 <Route path="/proposals" element={isAuthenticated ? <ViewProposals account={account} contract={contract} /> : <Navigate to="/" />} />
