@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback} from 'react';
 import { useNavigate } from 'react-router-dom';
 // import axios from 'axios';
 import { Box, Typography, Select, MenuItem, Card, CardContent, CardActions, Button, CircularProgress } from '@mui/material';
+import UpdateProposals from './updateProposals';
+
 
 const ViewProposals = ({ contract }) => {
   const [activeProposals, setActiveProposals] = useState([]);
@@ -11,6 +13,7 @@ const ViewProposals = ({ contract }) => {
   const [filter, setFilter] = useState('all'); // 'all', 'active', or 'past'
   // const [proposals, setProposals] = useState([]);
   const [expanded, setExpanded] = useState(null); // Initialize the expanded state
+  const [role, setRole] = useState('');
 
   const navigate = useNavigate();
 
@@ -27,6 +30,7 @@ const ViewProposals = ({ contract }) => {
     }
   };
 
+
   // Change the title according to selected filter option
   const getTitle = () => {
     switch (filter) {
@@ -39,6 +43,16 @@ const ViewProposals = ({ contract }) => {
         return 'Proposals';
     }
   };
+
+  useEffect(() => {
+    const storedRole = sessionStorage.getItem('role');
+      if (storedRole) {
+        setRole(storedRole);
+      }
+      console.log("role", role);
+      console.log("proposals", UpdateProposals(contract));
+    
+  }, []);
   
   useEffect(() => { 
     if (activeProposals.length > 0){

@@ -34,7 +34,7 @@ class UserProposal(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uid = db.Column(db.Integer, db.ForeignKey('user.uid'), nullable=False)
     pid = db.Column(db.Integer, db.ForeignKey('proposal.pid'), nullable=False)
-    votes = db.Column(db.Integer, default=0)  # Initialize votes to 0
+    vote = db.Column(db.Integer, default=0)  # Initialize votes to 0
 
 
 ## CRUD: Users
@@ -100,17 +100,49 @@ def update_user(uid):
 @app.route('/proposals', methods=['POST'])
 def add_proposal():
     data = request.get_json()
+    
     try:
+        # Extract data from the incoming request, use defaults if missing
+        name = data['name']
+        description = data['description']
+        deadline = datetime.strptime(data['deadline'], '%Y-%m-%d %H:%M:%S')  # Deadline in 'YYYY-MM-DD HH:MM:SS' format
+        
+        # Extract totals, default to 0 if not provided
+        total_votes = data.get('total_votes', 0)
+        total_yes_votes = data.get('total_yes_votes', 0)
+        total_no_votes = data.get('total_no_votes', 0)
+        
+        # Extract pid, default to None if not provided (assuming it's auto-incremented by the database)
+        pid = data.get('pid', None)
+
+        # Create a new proposal instance
         new_proposal = Proposal(
-            name=data['name'],
-            description=data['description'],
-            deadline=datetime.strptime(data['deadline'], '%Y-%m-%d %H:%M:%S'),  # Deadline in 'YYYY-MM-DD HH:MM:SS' format
+            pid=pid,  # If pid is provided, it will be used, otherwise the database will auto-generate it
+            name=name,
+            description=description,
+            deadline=deadline,
+            total_votes=total_votes,
+            total_yes_votes=total_yes_votes,
+            total_no_votes=total_no_votes
         )
+
+        # Add and commit the new proposal to the database
         db.session.add(new_proposal)
         db.session.commit()
-        return jsonify({"message": "Proposal added", "pid": new_proposal.pid}), 201
+
+        return jsonify({
+            "message": "Proposal added",
+            "pid": new_proposal.pid,
+            "name": new_proposal.name,
+            "description": new_proposal.description,
+            "deadline": new_proposal.deadline,
+            "total_votes": new_proposal.total_votes,
+            "total_yes_votes": new_proposal.total_yes_votes,
+            "total_no_votes": new_proposal.total_no_votes
+        }), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
 
 # Get All Proposals
 @app.route('/proposals', methods=['GET'])
@@ -180,24 +212,40 @@ def delete_proposal(pid):
     return jsonify({"message": "Proposal deleted"}), 200
 
 ## CRUD: Users Proposals
-#### Add User Proposal
-@app.route('/userproposals', methods=['POST'])
-def add_user_proposal():
-    data = request.get_json()
-    user_proposal = UserProposal(
-        uid=data['uid'],
-        pid=data['pid'],
-        token_assigned=data['token_assigned']
-    )
-    db.session.add(user_proposal)
-    db.session.commit()
-    return jsonify({"message": "User Proposal added", "id": user_proposal.id}), 201
 
 #### Read User Proposals
 @app.route('/userproposals', methods=['GET'])
 def get_user_proposals():
     user_proposals = UserProposal.query.all()
-    return jsonify([{"id": up.id, "uid": up.uid, "pid": up.pid, "token_assigned": up.token_assigned, "votes": up.votes} for up in user_proposals]), 200
+    return jsonify([{"id": up.id, "uid": up.uid, "pid": up.pid, "vote": up.vote} for up in user_proposals]), 200
+
+### read user proposal by uid and pid
+@app.route('/userproposals/<int:uid>/<int:pid>', methods=['GET'])
+def get_user_proposal(uid, pid):
+    user_proposal = UserProposal.query.filter_by(uid=uid, pid=pid).first()
+    if user_proposal is None:
+        return jsonify({"error": "User Proposal not found"}), 404
+    return jsonify({"id": user_proposal.id, "uid": user_proposal.uid, "pid": user_proposal.pid, "vote": user_proposal.vote}), 200
+
+#### Add User Proposal
+@app.route('/userproposals', methods=['POST'])
+def add_user_proposal():
+    data = request.get_json()
+    existing_proposal = UserProposal.query.filter_by(uid=data['uid'], pid=data['pid']).first()
+
+    if existing_proposal:
+        # Return a message if the vote already exists
+        return jsonify({"message": "A vote for this user and proposal already exists", "id": existing_proposal.id}), 409
+    
+    
+    user_proposal = UserProposal(
+        uid=data['uid'],
+        pid=data['pid'],
+        vote=data['vote']
+    )
+    db.session.add(user_proposal)
+    db.session.commit()
+    return jsonify({"message": "User Proposal added", "id": user_proposal.id}), 201
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -62,3 +62,15 @@ export const deleteUser = async (uid) => {
         return { error: "Failed to delete user" };
     }
 };
+
+
+export const getUserProposals = async (uid, pid) => {
+    try {
+        const response = await axios.get(`/userproposals/${uid}/${pid}`);
+        console.log("Fetched user proposal response:", response);
+        return response.data;
+    } catch (error) {
+        console.error(`Error fetching user proposals with UID ${uid} and PID ${pid}:`, error);
+        return null;
+    }
+}

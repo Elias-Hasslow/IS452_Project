@@ -136,7 +136,9 @@ const App = () => {
             <Box sx={{ display: 'flex', gap: 2 }}>
               <NavButton to="/homepage" label="Home" />
               {role === "admin" ? <NavButton to="/create" label="Create Proposal" /> : null}
+              {role === "admin" ? <NavButton to="/create" label="Create Proposal" /> : null}
               {/* <NavButton to="/vote" label="Vote" /> */}
+              {role ==="admin" ? <NavButton to="/adduser" label="Add User & Token" /> : null}
               {role ==="admin" ? <NavButton to="/adduser" label="Add User & Token" /> : null}
               <NavButton to="/proposals" label="View Proposals" />
               <NavButton to="/viewtokens" label="View Tokens" />
